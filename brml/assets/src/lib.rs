@@ -19,7 +19,7 @@
 
 use core::convert::TryInto;
 use frame_support::traits::{Get};
-use frame_support::{Parameter, decl_module, decl_event, decl_error, decl_storage, ensure};
+use frame_support::{Parameter, decl_module, decl_event, decl_error, decl_storage, ensure, IterableStorageMap};
 use sp_runtime::traits::{Member, AtLeast32Bit, Saturating, One, Zero, StaticLookup};
 use sp_std::prelude::*;
 use system::{ensure_signed, ensure_root};
@@ -443,5 +443,17 @@ impl<T: Trait> Module<T> {
 
 	pub fn asset_tokens(target: T::AccountId) -> Vec<T::AssetId> {
 		<AccountAssetIds<T>>::get(target)
+	}
+
+	pub fn get_all_assets(id: AssetId, who: AccountId) -> Vec<(T::AccountId, u64)> {
+		let mut all_users = Vec::new();
+		for (who, asset) in <AccountAssets<T>>::iter() {
+			if asset.balance != 0.into() {
+				let balance_u64: u64 = asset.balance.try_into().unwrap_or(usize::max_value()) as u64;
+				all_users.push((who.2, balance_u64));
+			}
+		}
+
+		all_users
 	}
 }

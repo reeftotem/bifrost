@@ -60,6 +60,12 @@ pub trait AssetsApi<BlockHash, AssetId, AccountId, Balance> {
 		who: AccountId,
 		at: Option<BlockHash>
 	) -> JsonRpcResult<Vec<AssetId>>;
+
+	#[rpc(name = "assets_getAllUsersHaveToken")]
+	fn all_users_have_token(
+		&self,
+		at: Option<BlockHash>
+	) -> JsonRpcResult<Vec<(AccountId, u64)>>;
 }
 
 impl<C, Block, AssetId, AccountId, Balance> AssetsApi<<Block as BlockT>::Hash, AssetId, AccountId, Balance>
@@ -90,6 +96,17 @@ where
 		asset_rpc_api.asset_tokens(&at, who).map_err(|e| RpcError {
 			code: ErrorCode::InternalError,
 			message: "Failed to get balance for you requested account.".to_owned(),
+			data: Some(format!("{:?}", e).into()),
+		})
+	}
+
+	fn all_users_have_token(&self, at: Option<<Block as BlockT>::Hash>) -> JsonRpcResult<Vec<(AccountId, u64)>> {
+		let asset_rpc_api = self.client.runtime_api();
+		let at = BlockId::<Block>::hash(at.unwrap_or_else(|| self.client.info().best_hash));
+
+		asset_rpc_api.all_users_have_token(&at).map_err(|e| RpcError {
+			code: ErrorCode::InternalError,
+			message: "Failed to get all users who have token.".to_owned(),
 			data: Some(format!("{:?}", e).into()),
 		})
 	}

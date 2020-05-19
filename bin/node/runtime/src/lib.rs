@@ -1020,6 +1020,10 @@ impl_runtime_apis! {
 		fn asset_tokens(who: AccountId) -> Vec<AssetId> {
 			Assets::asset_tokens(who)
 		}
+
+		fn all_users_have_token() -> Vec<(AccountId, u64)> {
+			Assets::get_all_assets()
+		}
 	}
 
 	impl brml_convert_rpc_runtime_api::ConvertPriceApi<node_primitives::Block, AssetId, node_primitives::ConvertPrice> for Runtime {

@@ -24,7 +24,8 @@ mod mock;
 mod tests;
 
 use frame_support::traits::Get;
-use frame_support::{Parameter, decl_event, decl_error, decl_module, decl_storage, debug, ensure, IterableStorageMap};
+use frame_support::weights::{FunctionOf, DispatchClass, Weight, Pays};
+use frame_support::{Parameter, decl_event, decl_error, decl_module, decl_storage, debug, ensure, StorageValue, IterableStorageMap};
 use frame_system::{self as system, ensure_root, ensure_signed};
 use node_primitives::{AssetTrait, AssetSymbol, ConvertPool, FetchConvertPrice, AssetReward, TokenType};
 use sp_runtime::traits::{AtLeast32Bit, Member, Saturating, Zero};
@@ -138,7 +139,11 @@ decl_module! {
 			Self::deposit_event(Event::UpdatezRatePerBlockSuccess);
 		}
 
-		#[weight = T::DbWeight::get().reads_writes(1, 1)]
+		#[weight = FunctionOf(
+			|args: (&T::Balance, &AssetSymbol, &Option<T::AccountId>)| Module::<T>::calculate_referer_gas(args.2),
+			DispatchClass::Normal,
+			Pays::Yes
+		)]
 		fn convert_token_to_vtoken(
 			origin,
 			#[compact] token_amount: T::Balance,
@@ -243,6 +248,14 @@ decl_module! {
 }
 
 impl<T: Trait> Module<T> {
+	fn calculate_referer_gas(referer: &Option<T::AccountId>) -> Weight {
+		if referer.is_some() {
+			1000
+		} else {
+			10
+		}
+	}
+
 	pub fn get_convert(token_id: T::AssetId) -> T::ConvertPrice {
 		<ConvertPrice<T>>::get(token_id)
 	}

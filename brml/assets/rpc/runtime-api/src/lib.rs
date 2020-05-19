@@ -33,5 +33,8 @@ decl_runtime_apis! {
 
 		/// get all issued tokens by account id
 		fn asset_tokens(who: AccountId) -> Vec<AssetId>;
+
+		/// find out all of users who have token
+		fn all_users_have_token() -> Vec<(AccountId, u64)>;
 	}
 }
